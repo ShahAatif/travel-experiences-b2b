@@ -1,0 +1,313 @@
+// Prisma schema for the Travel Experiences B2B platform
+// This schema defines all database models used by the application.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  AGENCY
+  CUSTOMER
+
+  @@map("user_role")
+}
+
+enum ExperienceStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+
+  @@map("experience_status")
+}
+
+enum DifficultyLevel {
+  EASY
+  MODERATE
+  HARD
+  EXPERT
+
+  @@map("difficulty_level")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+
+  @@map("booking_status")
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+
+  @@map("payment_status")
+}
+
+enum PaymentMethod {
+  STRIPE
+  RAZORPAY
+
+  @@map("payment_method")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+
+  @@map("invoice_status")
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+
+  @@map("review_status")
+}
+
+enum DigestFrequency {
+  WEEKLY
+  MONTHLY
+  NEVER
+
+  @@map("digest_frequency")
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String
+  firstName         String
+  lastName          String
+  role              UserRole  @default(CUSTOMER)
+  emailVerified     Boolean   @default(false)
+  avatarUrl         String?
+  emailVerificationToken String?
+  passwordResetToken String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  agency            Agency?
+  teamMembers       TeamMember[]
+  auditLogs         AuditLog[]
+  bookings          Booking[]
+
+  @@map("users")
+}
+
+model Agency {
+  id                    String   @id @default(uuid())
+  name                  String
+  email                 String   @unique
+  ownerId               String   @unique
+  commissionPercentage  Float    @default(15)
+  isVerified            Boolean  @default(false)
+  bankDetails           Json?
+  payoutSchedule        String   @default("monthly")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  owner                 User     @relation(fields: [ownerId], references: [id])
+  experiences           Experience[]
+  bookings              Booking[]
+  invoices              Invoice[]
+  teamMembers           TeamMember[]
+  notificationPreferences NotificationPreference?
+  apiKeys               ApiKey[]
+
+  @@map("agencies")
+}
+
+model Experience {
+  id                  String         @id @default(uuid())
+  title               String
+  slug                String         @unique
+  description         String
+  destination         String
+  category            String
+  coverImage          String
+  images              String[]
+  basePrice           Float
+  minGroupSize        Int            @default(1)
+  maxGroupSize        Int            @default(20)
+  difficultyLevel     DifficultyLevel @default(MODERATE)
+  agencyId            String
+  status              ExperienceStatus @default(DRAFT)
+  averageRating       Float          @default(0)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  agency              Agency         @relation(fields: [agencyId], references: [id])
+  bookings            Booking[]
+  reviews             Review[]
+
+  @@index([agencyId])
+  @@index([destination])
+  @@index([category])
+  @@index([status])
+  @@map("experiences")
+}
+
+model Booking {
+  id                  String        @id @default(uuid())
+  bookingNumber       String        @unique
+  experienceId        String
+  agencyId            String
+  selectedDate        DateTime
+  numberOfParticipants Int
+  subtotal            Float
+  discount            Float         @default(0)
+  taxes               Float         @default(0)
+  total               Float
+  participantName     String
+  participantEmail    String
+  specialRequests     String?
+  status              BookingStatus @default(PENDING)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  userId              String
+
+  experience          Experience    @relation(fields: [experienceId], references: [id])
+  agency              Agency        @relation(fields: [agencyId], references: [id])
+  user                User          @relation(fields: [userId], references: [id])
+  payment             Payment?
+  invoice             Invoice?
+
+  @@index([experienceId])
+  @@index([agencyId])
+  @@index([status])
+  @@index([selectedDate])
+  @@index([userId])
+  @@map("bookings")
+}
+
+model Payment {
+  id                      String        @id @default(uuid())
+  bookingId               String        @unique
+  amount                  Float
+  currency                String        @default("USD")
+  status                  PaymentStatus @default(PENDING)
+  method                  PaymentMethod
+  stripePaymentIntentId   String?
+  razorpayOrderId         String?
+  razorpayPaymentId       String?
+  razorpaySignature       String?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  booking                 Booking       @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([method])
+  @@map("payments")
+}
+
+model Invoice {
+  id          String       @id @default(uuid())
+  invoiceNumber String     @unique
+  bookingId   String       @unique
+  agencyId    String
+  subtotal    Float
+  taxAmount   Float
+  total       Float
+  status      InvoiceStatus @default(DRAFT)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  booking     Booking      @relation(fields: [bookingId], references: [id])
+  agency      Agency       @relation(fields: [agencyId], references: [id])
+
+  @@index([agencyId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("invoices")
+}
+
+model Review {
+  id          String       @id @default(uuid())
+  experienceId String
+  rating      Int
+  title       String?
+  content     String?
+  isVerified  Boolean      @default(false)
+  status      ReviewStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+
+  experience  Experience   @relation(fields: [experienceId], references: [id])
+
+  @@index([experienceId])
+  @@index([status])
+  @@map("reviews")
+}
+
+model TeamMember {
+  id        String       @id @default(uuid())
+  userId    String
+  agencyId  String
+  role      String
+  permissions Json
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user      User         @relation(fields: [userId], references: [id])
+  agency    Agency       @relation(fields: [agencyId], references: [id])
+
+  @@index([agencyId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+model ApiKey {
+  id        String       @id @default(uuid())
+  agencyId  String
+  key       String       @unique
+  name      String?
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+
+  agency    Agency       @relation(fields: [agencyId], references: [id])
+
+  @@index([agencyId])
+  @@map("api_keys")
+}
+
+model AuditLog {
+  id         String     @id @default(uuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String
+  changes    Json?
+  createdAt  DateTime   @default(now())
+
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+model NotificationPreference {
+  id            String        @id @default(uuid())
+  agencyId      String        @unique
+  emailOnBooking Boolean      @default(true)
+  emailOnPayment Boolean      @default(true)
+  digestFrequency DigestFrequency @default(WEEKLY)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  agency        Agency        @relation(fields: [agencyId], references: [id])
+
+  @@map("notification_preferences")
+}
