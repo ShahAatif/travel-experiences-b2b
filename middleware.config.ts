@@ -1,4 +1,4 @@
-import { type NextMiddlewareConfig } from 'next/dist/server/web/types';
+import type { NextMiddlewareConfig } from 'next/dist/server/web/types';
 
 export const config: NextMiddlewareConfig = {
   env: {
