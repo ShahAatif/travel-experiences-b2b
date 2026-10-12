@@ -91,10 +91,3 @@ export function middleware(request: NextRequest) {
     },
   });
 }
-
-export const config = {
-  matcher: [
-    // Skip Next.js internals and static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)',
-  ],
-};

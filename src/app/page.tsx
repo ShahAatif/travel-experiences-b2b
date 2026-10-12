@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -8,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/loading';
 import { ArrowRight, MapPin, Star, Users, Shield, Clock, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface Experience {
   id: string;
@@ -208,6 +206,74 @@ function HowItWorks() {
   );
 }
 
+function TestimonialsSection() {
+  const testimonials = [
+    {
+      name: 'Emma Richardson',
+      role: 'Adventure Seeker',
+      content: 'The Alpine Mountain Retreat was absolutely life-changing. The guides were knowledgeable, the lodging was cozy, and the views were beyond anything I\'ve ever seen.',
+      rating: 5,
+    },
+    {
+      name: 'Marcus Chen',
+      role: 'Family Traveler',
+      content: 'Booking our safari expedition was seamless. Every detail was handled professionally, and the kids still talk about the elephants months later.',
+      rating: 5,
+    },
+    {
+      name: 'Sofia Martinez',
+      role: 'Wellness Enthusiast',
+      content: 'The Mediterranean Coastal Escape was exactly the reset I needed. Private boat tours, farm-to-table dining, and relaxation at its finest.',
+      rating: 5,
+    },
+  ];
+
+  return (
+    <section className="bg-white py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            What Travelers Are Saying
+          </h2>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Real experiences from real adventurers who discovered their next favorite memory with us
+          </p>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-3">
+          {testimonials.map((testimonial, index) => (
+            <Card key={index} className="p-6 bg-gray-50 border-0">
+              <div className="flex items-center gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i < testimonial.rating
+                        ? 'text-amber-500 fill-amber-500'
+                        : 'text-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-gray-700 mb-6 italic">"{testimonial.content}"</p>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-white font-semibold">
+                  {testimonial.name.charAt(0)}
+                  {testimonial.name.split(' ')[1].charAt(0)}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                  <p className="text-sm text-gray-500">{testimonial.role}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CTASection() {
   return (
     <section className="bg-primary-600 py-20">
@@ -319,6 +385,9 @@ export default function HomePage() {
 
       {/* How It Works */}
       <HowItWorks />
+
+      {/* Testimonials */}
+      <TestimonialsSection />
 
       {/* CTA */}
       <CTASection />
