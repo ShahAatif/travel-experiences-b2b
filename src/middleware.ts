@@ -20,6 +20,7 @@ export function middleware(request: NextRequest) {
     '/api/auth/signup',
     '/api/auth/verify-email',
     '/api/auth/reset-password',
+    '/api/auth/session',
     '/api/experiences',
     '/api/dashboard/stats',
   ];
