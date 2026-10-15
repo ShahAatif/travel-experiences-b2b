@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json({ success: false, data: null });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.id },
       select: {
         id: true,

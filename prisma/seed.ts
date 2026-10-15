@@ -8,7 +8,7 @@ async function main() {
   const agencyPassword = await bcrypt.hash('agency123', 10);
   const customerPassword = await bcrypt.hash('customer123', 10);
 
-  const admin = await prisma.user.create({
+  const admin = await prisma.users.create({
     data: {
       email: 'admin@travelhub.com',
       passwordHash: adminPassword,
@@ -35,7 +35,7 @@ async function main() {
     },
   });
 
-  const agencyUser = await prisma.user.create({
+  const agencyUser = await prisma.users.create({
     data: {
       email: 'owner@wanderlust.com',
       passwordHash: agencyPassword,
@@ -60,7 +60,7 @@ async function main() {
     },
   });
 
-  const customer = await prisma.user.create({
+  const customer = await prisma.users.create({
     data: {
       email: 'customer@example.com',
       passwordHash: customerPassword,

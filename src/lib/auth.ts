@@ -39,7 +39,7 @@ export function verifyToken(token: string): User | null {
 }
 
 export async function createSession(userId: string) {
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await prisma.users.findUnique({ where: { id: userId } });
   if (!user) return null;
 
   const token = generateToken({
